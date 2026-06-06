@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GraPARI Controlling System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        :root { --telkomsel-red: #d90000; --telkomsel-dark: #333; }
+        body { background-color: #eef1f5; font-family: 'Segoe UI', sans-serif; }
+        .sidebar { min-height: 100vh; background-color: var(--telkomsel-dark); color: white; }
+        .nav-link { color: rgba(255,255,255,0.8); cursor: pointer; padding: 10px; margin-bottom: 5px; }
+        .nav-link:hover, .nav-link.active { color: white; background-color: var(--telkomsel-red) !important; border-radius: 5px; }
+        .btn-tkm { background-color: var(--telkomsel-red); color: white; border: none; }
+        .btn-tkm:hover { background-color: #b00000; color: white; }
+    </style>
+</head>
+<body>
+
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-2 sidebar d-none d-md-block p-3">
+            <h4 class="text-center mb-4 mt-2"><i class="bi bi-router-fill"></i><br>GraPARI<br>Controls</h4>
+            <hr>
+            <ul class="nav flex-column">
+                <li class="nav-item mb-2"> <a class="nav-link active" onclick="showTab('ticket')"><i class="bi bi-ticket-detailed me-2"></i> Controlling Ticket</a> </li>
+                <li class="nav-item mb-2"> <a class="nav-link" onclick="showTab('kkm')"><i class="bi bi-file-earmark-x me-2"></i> KKM (Dokumen)</a> </li>
+                <li class="nav-item mb-2"> <a class="nav-link" onclick="showTab('indihome')"><i class="bi bi-person-lines-fill me-2"></i> Follow Up Indihome</a> </li>
+            </ul>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-10 p-4">
+            
+            <!-- TAB 1: TICKET -->
+            <div id="ticket-tab" class="tab-content">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header p-3 bg-white"><h5 class="mb-0"><i class="bi bi-pencil-square"></i> Input Controlling Ticket</h5></div>
+                    <div class="card-body">
+                        <form id="form-ticket" class="row g-3">
+                            <div class="col-md-4"><label class="form-label">Nama CS</label><input type="text" class="form-control" id="t-nama" required></div>
+                            <div class="col-md-4"><label class="form-label">Layanan</label><select class="form-select" id="t-layanan"><option value="Telkomsel Halo">Telkomsel Halo</option><option value="Kartu As">Kartu As</option><option value="Simpati">Simpati</option><option value="By.U">By.U</option><option value="Indihome">Indihome</option></select></div>
+                            <div class="col-md-4"><label class="form-label">Issue</label><select class="form-select" id="t-issue"><option value="Telkomsel">Telkomsel</option><option value="Indihome">Indihome</option></select></div>
+                            <div class="col-md-4"><label class="form-label">Progres</label><select class="form-select" id="t-progres"><option value="Pending">Pending</option><option value="Inprogress">Inprogress</option><option value="Complete">Complete</option></select></div>
+                            <div class="col-md-8"><label class="form-label">Catatan</label><textarea class="form-control" id="t-catatan" rows="1"></textarea></div>
+                            <div class="col-12"><button type="submit" class="btn btn-tkm">Simpan Ticket</button> <button type="button" class="btn btn-success ms-2" onclick="exportExcel('ticket')"><i class="bi bi-file-earmark-excel"></i> Export</button></div>
+                        </form>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mb-2"><h5>Data Ticket</h5></div>
+                <div class="card shadow-sm">
+                    <div class="card-body p-0">
+                        <table class="table table-bordered table-hover mb-0" id="table-ticket">
+                            <thead class="table-light"><tr><th>Tanggal</th><th>Nama CS</th><th>Layanan</th><th>Issue</th><th>Progres</th><th>Catatan</th><th>Aksi</th></tr></thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: KKM (SUDAH DIPERBARUI) -->
+            <div id="kkm-tab" class="tab-content d-none">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header p-3 bg-white"><h5 class="mb-0"><i class="bi bi-file-earmark-x"></i> Input KKM (Kekurangan Dokumen)</h5></div>
+                    <div class="card-body">
+                        <form id="form-kkm" class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label">Nama CS</label>
+                                <input type="text" class="form-control" id="k-nama" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Total Temuan Kekurangan</label>
+                                <input type="number" class="form-control" id="k-temuan" value="0" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Progress</label>
+                                <select class="form-select" id="k-progress">
+                                    <option value="Pending">Pending</option>
+                                    <option value="Done">Done</option>
+                                </select>
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label">Catatan</label>
+                                <textarea class="form-control" id="k-catatan" rows="2" placeholder="Isi catatan jika ada..."></textarea>
+                            </div>
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-tkm">Simpan Data KKM</button> 
+                                <button type="button" class="btn btn-success ms-2" onclick="exportExcel('kkm')"><i class="bi bi-file-earmark-excel"></i> Export</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mb-2"><h5>Rekap KKM</h5></div>
+                <div class="card shadow-sm">
+                    <div class="card-body p-0">
+                        <table class="table table-bordered mb-0" id="table-kkm">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Tanggal Input</th>
+                                    <th>Nama CS</th>
+                                    <th>Total Temuan</th>
+                                    <th>Progress</th>
+                                    <th>Catatan</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: INDIHOME -->
+            <div id="indihome-tab" class="tab-content d-none">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header p-3 bg-white"><h5 class="mb-0"><i class="bi bi-person-lines-fill"></i> Input Follow Up Indihome</h5></div>
+                    <div class="card-body">
+                        <form id="form-indihome" class="row g-3">
+                            <div class="col-md-3"><label class="form-label">Nama CS</label><input type="text" class="form-control" id="i-nama" required></div>
+                            <div class="col-md-3"><label class="form-label">No Indihome</label><input type="text" class="form-control" id="i-noIndihome" required></div>
+                            <div class="col-md-3"><label class="form-label">No Telp</label><input type="text" class="form-control" id="i-noTelp"></div>
+                            <div class="col-md-3"><label class="form-label">Order ID</label><input type="text" class="form-control" id="i-orderid"></div>
+                            <div class="col-md-12"><label class="form-label">Catatan / Status</label><textarea class="form-control" id="i-catatan" rows="2"></textarea></div>
+                            <div class="col-12"><button type="submit" class="btn btn-tkm">Simpan Data</button> <button type="button" class="btn btn-success ms-2" onclick="exportExcel('indihome')"><i class="bi bi-file-earmark-excel"></i> Export</button></div>
+                        </form>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mb-2"><h5>Monitoring Follow Up Indihome</h5></div>
+                <div class="card shadow-sm">
+                    <div class="card-body p-0">
+                        <table class="table table-bordered table-hover mb-0" id="table-indihome">
+                            <thead class="table-light"><tr><th>Tanggal</th><th>Nama CS</th><th>No Indihome</th><th>No Telp</th><th>Order ID</th><th>Catatan</th><th>Aksi</th></tr></thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    // 1. Database LocalStorage
+    const db = {
+        ticket: JSON.parse(localStorage.getItem('gpara_ticket')) || [],
+        kkm: JSON.parse(localStorage.getItem('gpara_kkm')) || [],
+        indihome: JSON.parse(localStorage.getItem('gpara_indihome')) || []
+    };
+
+    // 2. Fungsi Navigasi Tab
+    function showTab(tabName) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.add('d-none'));
+        document.getElementById(tabName + '-tab').classList.remove('d-none');
+        
+        // Update Active Sidebar
+        document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+        if(event) event.target.closest('a').classList.add('active');
+    }
+
+    // 3. Fungsi Simpan Data (Save)
+    function saveData(type, data) {
+        data.tanggal = new Date().toLocaleDateString('id-ID');
+        db[type].push(data);
+        localStorage.setItem('gpara_' + type, JSON.stringify(db[type]));
+        renderAll();
+    }
+
+    // 4. Fungsi Hapus Data (Delete)
+    function deleteData(type, index) {
+        if(confirm('Yakin hapus data ini?')) {
+            db[type].splice(index, 1);
+            localStorage.setItem('gpara_' + type, JSON.stringify(db[type]));
+            renderAll();
+        }
+    }
+
+    // 5. Fungsi Render Tabel
+    function renderAll() {
+        // Render Ticket
+        const tBody = document.querySelector('#table-ticket tbody');
+        tBody.innerHTML = db.ticket.map((item, i) => `
+            <tr>
+                <td>${item.tanggal}</td><td>${item.cs}</td><td>${item.layanan}</td><td>${item.issue}</td>
+                <td><span class="badge ${item.progres==='Complete'?'bg-success':(item.progres==='Inprogress'?'bg-warning':'bg-secondary')}">${item.progres}</span></td>
+                <td>${item.catatan}</td>
+                <td><button class="btn btn-sm btn-danger" onclick="deleteData('ticket', ${i})"><i class="bi bi-trash"></i></button></td>
+            </tr>`).join('');
+
+        // Render KKM (Sudah Ditambahkan Progress & Catatan)
+        const kBody = document.querySelector('#table-kkm tbody');
+        kBody.innerHTML = db.kkm.map((item, i) => `
+            <tr>
+                <td>${item.tanggal}</td><td>${item.cs}</td><td><span class="badge bg-danger">${item.temuan}</span></td>
+                <td><span class="badge ${item.progress === 'Done' ? 'bg-success' : 'bg-warning'}">${item.progress}</span></td>
+                <td>${item.catatan || '-'}</td>
+                <td><button class="btn btn-sm btn-danger" onclick="deleteData('kkm', ${i})"><i class="bi bi-trash"></i></button></td>
+            </tr>`).join('');
+
+        // Render Indihome
+        const iBody = document.querySelector('#table-indihome tbody');
+        iBody.innerHTML = db.indihome.map((item, i) => `
+            <tr>
+                <td>${item.tanggal}</td><td>${item.cs}</td><td>${item.noIndihome}</td><td>${item.noTelp}</td><td>${item.orderid}</td><td>${item.catatan}</td>
+                <td><button class="btn btn-sm btn-danger" onclick="deleteData('indihome', ${i})"><i class="bi bi-trash"></i></button></td>
+            </tr>`).join('');
+    }
+
+    // 6. Fungsi Export Excel
+    function exportExcel(type) {
+        const ws = XLSX.utils.json_to_sheet(db[type]);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, type);
+        XLSX.writeFile(wb, `Data_${type}_${new Date().toISOString().slice(0,10)}.xlsx`);
+    }
+
+    // 7. Event Listeners Form Submit
+    document.getElementById('form-ticket').addEventListener('submit', function(e) {
+        e.preventDefault();
+        saveData('ticket', {
+            cs: document.getElementById('t-nama').value,
+            layanan: document.getElementById('t-layanan').value,
+            issue: document.getElementById('t-issue').value,
+            progres: document.getElementById('t-progres').value,
+            catatan: document.getElementById('t-catatan').value
+        });
+        this.reset();
+    });
+
+    // EVENT KKM (Sudah Ditambahkan Progress & Catatan)
+    document.getElementById('form-kkm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        saveData('kkm', {
+            cs: document.getElementById('k-nama').value,
+            temuan: document.getElementById('k-temuan').value,
+            progress: document.getElementById('k-progress').value,
+            catatan: document.getElementById('k-catatan').value
+        });
+        this.reset();
+    });
+
+    document.getElementById('form-indihome').addEventListener('submit', function(e) {
+        e.preventDefault();
+        saveData('indihome', {
+            cs: document.getElementById('i-nama').value,
+            noIndihome: document.getElementById('i-noIndihome').value,
+            noTelp: document.getElementById('i-noTelp').value,
+            orderid: document.getElementById('i-orderid').value,
+            catatan: document.getElementById('i-catatan').value
+        });
+        this.reset();
+    });
+
+    // Init Render
+    renderAll();
+</script>
+
+</body>
+</html>
